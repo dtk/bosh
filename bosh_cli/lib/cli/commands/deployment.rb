@@ -136,10 +136,12 @@ module Bosh::Cli::Command
         end
       end
 
-      manifest = prepare_deployment_manifest(resolve_properties: true, show_state: true)
+      # DTK CHANGE (We do not need this)
+      # manifest = prepare_deployment_manifest(resolve_properties: true, show_state: true)
 
-      context = DeploymentDiff.new(director, manifest).print({redact_diff: redact_diff})
-      say('Please review all changes carefully'.make_yellow) if interactive?
+      # context = DeploymentDiff.new(director, manifest).print({redact_diff: redact_diff})
+      # say('Please review all changes carefully'.make_yellow) if interactive?
+      context = nil
 
       header('Deploying')
 
@@ -158,7 +160,7 @@ module Bosh::Cli::Command
 
       status, task_id = director.deploy(manifest.yaml, deploy_options)
 
-      task_report(status, task_id, "Deployed `#{manifest.name.make_green}' to `#{target_name.make_green}'")
+      # task_report(status, task_id, "Deployed `#{manifest.name.make_green}' to `#{target_name.make_green}'")
     end
 
     # bosh delete deployment

@@ -23,6 +23,8 @@ module Bosh
     class ConfigError            < CliError; error_code(101); end
     class DirectorMissing        < CliError; error_code(102); end
     class DirectorInaccessible   < CliError; error_code(103); end
+    class DtkMissing             < CliError; error_code(104); end
+
 
     class DirectorError          < CliError; error_code(201); end
     class AuthError              < DirectorError; error_code(202); end

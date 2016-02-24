@@ -81,4 +81,5 @@ spec_coverage
 spec_reports
 
 /tmp/*
+.byebug_history
 coverage/

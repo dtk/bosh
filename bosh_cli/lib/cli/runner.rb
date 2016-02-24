@@ -1,3 +1,5 @@
+require 'cli/dtk/method_logger'
+
 module Bosh::Cli
   class ParseTreeNode < Hash
     attr_accessor :command
@@ -62,7 +64,7 @@ module Bosh::Cli
       rescue OptionParser::ParseError => e
         say_err(e.message)
         nl
-        say_err("Usage: bosh #{command.usage_with_params.columnize(60, 7)}")
+        say_err("Usage2: bosh #{command.usage_with_params.columnize(60, 7)}")
         nl
         if command.has_options?
           say(command.options_summary.indent(7))

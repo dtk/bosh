@@ -2,6 +2,11 @@
 require_relative '../bin/optionally_run_with_bundler'
 OptionallyRunWithBundler.run(ENV)
 
+# DEBUG SNIPPET >>> REMOVE <<<
+require 'ap'
+# we use this to set load path remove it afterwards
+$:.unshift File.dirname(__FILE__).gsub('bin','lib')
+
 require 'benchmark'
 require_cli_time = Benchmark.realtime { require "cli" }
 

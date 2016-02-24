@@ -78,6 +78,11 @@ module Bosh::Cli
       end
     end
 
+    # @return [Hash] DTK credentials
+    def dtk_info
+      return @config_file["dtk"].is_a?(Hash) ? @config_file["dtk"] : nil
+    end
+
     def set_credentials(target, credentials)
       @config_file["auth"] ||= {}
       @config_file["auth"][target] = credentials
@@ -234,6 +239,8 @@ module Bosh::Cli
 
       expanded_path
     end
+
+
 
     # Read the max parallel downloads configuration.
     #
