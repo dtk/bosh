@@ -269,7 +269,6 @@ module Bosh
           assembly_id, assembly_name = @dtk_client.stage(deployment_name, target_cpi)
           say("Created service '#{assembly_name}', deploying ...".make_green)
           @dtk_client.exec_sync(assembly_id)
-          @dtk_client.task_listen(assembly_id)
 
           # request_and_track(:post, add_query_string(url, extras), options)
         end

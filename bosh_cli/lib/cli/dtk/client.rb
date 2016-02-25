@@ -23,14 +23,8 @@ module Bosh::Cli
         @ca_cert             = options[:ca_cert]
       end
 
-      def list_components
-        ap "List componetns on DTK"
-        ap post('/rest/component_module/list', 'application/json', {})
-        # ap get_json('/rest/component_module/list')
-      end
-
       def stage(deployment_name, target_cpi)
-        service_module_name, assembly_name, instance_name = extract_dtk_essential_from_name(deployment_name)
+        service_module_name, assembly_name, instance_name, version = extract_dtk_essential_from_name(deployment_name)
 
         payload = {
           :assembly_id => assembly_name,
@@ -38,6 +32,9 @@ module Bosh::Cli
           :target_id => target_cpi,
           :name => instance_name
         }
+
+        # ability to bypass version
+        payload.merge!(:version => version) unless 'none'.eql?(version)
 
         result = handle_response  { post('/rest/assembly/stage', nil, payload) }
         service_obj = YAML.load(result)["new_service_instance"]
@@ -57,17 +54,17 @@ module Bosh::Cli
 
       def task_listen(assembly_id)
         index = 0
+        next_step = nil
 
         while true
-          # ap "CALL GOES #{assembly_id} #{index}"
-          elements = task_status(assembly_id, index)
-          # ap elements
-
+          elements = task_status(assembly_id, index, next_step)
           elements.each do |el|
             el.render
             if el.is_increment?
               index += 1
             end
+            # only if it changes we assign it
+            next_step = el.next_step ? el.next_step : next_step
             return if el.is_finished?
           end
 
@@ -75,7 +72,7 @@ module Bosh::Cli
         end
       end
 
-      def task_status(assembly_id, index)
+      def task_status(assembly_id, index, next_step = nil)
         payload = {
             :assembly_id => assembly_id,
                    :form => :stream_form,
@@ -83,6 +80,7 @@ module Bosh::Cli
               :end_index => index
         }
 
+        payload.merge!( :wait_for => next_step) if next_step
         response = handle_response  { post('/rest/assembly/task_status', nil, payload) }
 
         # we transform each
@@ -107,8 +105,8 @@ module Bosh::Cli
 
       def extract_dtk_essential_from_name(deployment_name)
         arr = deployment_name.split('-')
-        raise CliExit, "deployment name not dtk valid '#{deployment_name}'" unless (arr.size == 3)
-        [arr[0], arr[1], "#{arr[1]}-#{arr[2]}"]
+        raise CliExit, "deployment name not dtk valid '#{deployment_name}'" unless (arr.size == 4)
+        [arr[0], arr[1], "#{arr[1]}-#{arr[2]}", arr[3]]
       end
 
     end
