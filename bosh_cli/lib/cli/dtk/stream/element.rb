@@ -70,7 +70,7 @@ module Bosh::Cli
             print_line
             say("")
             say("  start time:".make_yellow + " #{started_at}")
-            components, action_name, action_results = extract_components_action_name_action_results
+            components, action_name, action_results = extract_detail_dtk_info
 
             unless components.empty?
               say("  components: ".make_yellow)
@@ -87,10 +87,18 @@ module Bosh::Cli
 
             return
           when STAGE_END
-            say("  status:".make_yellow + " #{@status}")
+            task_errors = extract_errors
+            say("  status:".make_yellow + " #{status}")
             say("  end time:".make_yellow + " #{ended_at}")
             say("  duration:".make_yellow + " #{duration}")
             say("")
+
+            unless task_errors.empty?
+              say("  errors: ".make_red)
+              say("    " + task_errors.join('\n'))
+              say("")
+            end
+
             print_line
             return
           when TASK_END
@@ -100,7 +108,17 @@ module Bosh::Cli
           end
       end
 
-      def extract_components_action_name_action_results
+      def extract_errors
+        task_errors = []
+        if @subtasks
+          @subtasks.each do |task|
+            task_errors << (task['errors']||[]).collect { |err| err['message'] }
+          end
+        end
+        task_errors.flatten
+      end
+
+      def extract_detail_dtk_info
         components  = []
         action_name = nil
         action_results = nil
@@ -143,6 +161,11 @@ module Bosh::Cli
         Time.parse(@ended_at).strftime(TIME_FORMAT)
       end
 
+      def status
+        return if @status.nil?
+        'failed'.eql?(@status) ? @status.make_red : 'succeeded'.eql?(@status) ? @status.make_green : @status
+      end
+
       def duration
         return if @duration.nil?
         "#{Float(@duration).round(2)}s"
@@ -158,7 +181,7 @@ module Bosh::Cli
       end
 
       def print_line
-        say('-----------------------------------')
+        say('----------------------------------------'.make_white)
       end
 
     end

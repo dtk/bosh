@@ -9,6 +9,8 @@ module BoshExtensions
     Bosh::Cli::Config.output.print("#{$indent}#{message}#{sep}")
   end
 
+
+
   def with_indent(indent)
     old_indent, $indent = $indent, old_indent.to_s + indent.to_s
     yield
@@ -118,7 +120,8 @@ module BoshStringExtensions
   COLOR_CODES = {
     :red => "\e[0m\e[31m",
     :green => "\e[0m\e[32m",
-    :yellow => "\e[0m\e[33m"
+    :yellow => "\e[0m\e[33m",
+    :white => "\e[0m\e[37m"
   }
 
   def make_red
@@ -127,6 +130,10 @@ module BoshStringExtensions
 
   def make_green
     make_color(:green)
+  end
+
+  def make_white
+    make_color(:white)
   end
 
   def make_yellow
