@@ -30,7 +30,8 @@ module Bosh::Cli
           :assembly_id => assembly_name,
           :service_module_name => service_module_name,
           :target_id => target_cpi,
-          :name => instance_name
+          :name => instance_name,
+          :os_type => 'trusty' # TODO: temp
         }
 
         # ability to bypass version
