@@ -37,10 +37,10 @@ module Bosh::Cli
         payload = {
           :name => deployment_name,
           :target_id => target_cpi,
-          :name => instance_name,
+          :name => deployment_name,
           :silent_fail => true,
           :assembly_id => assembly_name,
-          :service_module_name => "#{service_module_ns}:#{service_module_name}",
+          :service_module_name => "#{service_module_ns}:#{service_module_name}"
         }
 
         # ability to bypass version
