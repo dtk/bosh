@@ -266,8 +266,11 @@ module Bosh
           deployment_name = YAML.load(manifest_yaml)["name"]
           target_cpi      = get_status["cpi"]
 
-          assembly_id, assembly_name = @dtk_client.stage(deployment_name, target_cpi)
-          say("Created service '#{assembly_name}', deploying ...".make_green)
+          assembly_id, assembly_name, is_created = @dtk_client.stage(deployment_name, target_cpi)
+
+          msg = is_created ? "Created service '#{assembly_name}', deploying ..." : "Found service '#{assembly_name}', reconverging ..."
+          say(msg.make_green)
+
           @dtk_client.exec_sync(assembly_id)
 
           # request_and_track(:post, add_query_string(url, extras), options)

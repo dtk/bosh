@@ -30,7 +30,8 @@ module Bosh::Cli
           :assembly_id => assembly_name,
           :service_module_name => service_module_name,
           :target_id => target_cpi,
-          :name => instance_name
+          :name => instance_name,
+          :silent_fail => true
         }
 
         # ability to bypass version
@@ -38,7 +39,7 @@ module Bosh::Cli
 
         result = handle_response  { post('/rest/assembly/stage', nil, payload) }
         service_obj = YAML.load(result)["new_service_instance"]
-        [service_obj["id"], service_obj["name"]]
+        [service_obj["id"], service_obj["name"], service_obj["is_created"]]
       end
 
       def exec_sync(assembly_id)
