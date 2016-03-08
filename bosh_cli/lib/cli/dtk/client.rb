@@ -7,35 +7,46 @@ module Bosh::Cli
 
       include ::Bosh::Cli::Client::Http
 
-      def initialize(dtk_credentials, options = {})
-        unless dtk_credentials
+      def initialize(dtk_info, options = {})
+        unless dtk_info
           raise DirectorMissing, 'no dtk info provided'
         end
 
-        @director_uri        = URI.parse(dtk_credentials['host'])
+        @director_uri        = URI.parse(dtk_info['host'])
         @director_ip         = Resolv.getaddresses(@director_uri.host).last
         @scheme              = @director_uri.scheme
         @port                = @director_uri.port
-        @credentials         = ::Bosh::Cli::Client::BasicCredentials.new(dtk_credentials['username'], dtk_credentials['password'])
+        @credentials         = ::Bosh::Cli::Client::BasicCredentials.new(dtk_info['username'], dtk_info['password'])
         @track_tasks         = !options.delete(:no_track)
         @num_retries         = options.fetch(:num_retries, 5) || 5
         @retry_wait_interval = options.fetch(:retry_wait_interval, 5) || 5
         @ca_cert             = options[:ca_cert]
+        @service_module      = dtk_info['service_module'] || {}
+        @assembly_template   = dtk_info['assembly_template'] || {}
       end
 
       def stage(deployment_name, target_cpi)
-        service_module_name, assembly_name, instance_name, version = extract_dtk_essential_from_name(deployment_name)
+        service_module_name    = required('service_module.name', @service_module['name'])
+        service_module_ns      = required('service_module.namespace', @service_module['namespace'])
+        service_module_version = @service_module['version']
+        assembly_name          = required('assembly_template.name', @assembly_template['name'])
+
+        # TODO: compute these rather than being constants
+        os_type = 'trusty'
 
         payload = {
-          :assembly_id => assembly_name,
-          :service_module_name => service_module_name,
+          :name => deployment_name,
           :target_id => target_cpi,
           :name => instance_name,
-          :silent_fail => true
+          :silent_fail => true,
+          :assembly_id => assembly_name,
+          :service_module_name => "#{service_module_ns}:#{service_module_name}",
         }
 
         # ability to bypass version
-        payload.merge!(:version => version) unless 'none'.eql?(version)
+        payload.merge!(:version => service_module_version) unless service_module_version.nil?
+        # os_type optional
+        payload.merge!(:os_type => os_type) unless 'none'.eql?(os_type)
 
         result = handle_response  { post('/rest/assembly/stage', nil, payload) }
         service_obj = YAML.load(result)["new_service_instance"]
@@ -104,12 +115,10 @@ module Bosh::Cli
         res_hash["data"]
       end
 
-      def extract_dtk_essential_from_name(deployment_name)
-        arr = deployment_name.split('-')
-        raise CliExit, "deployment name not dtk valid '#{deployment_name}'" unless (arr.size == 4)
-        [arr[0], arr[1], "#{arr[1]}-#{arr[2]}", arr[3]]
+      def required(param_name, param)
+        raise CliExit, "dtk param '#{param_name}' is missing in bosh config file" if param.nil?
+        param
       end
-
     end
   end
 end
